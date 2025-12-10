@@ -1,51 +1,39 @@
 import express from "express";
 import fetch from "node-fetch";
+import * as cheerio from "cheerio";
 import cors from "cors";
 
 const app = express();
 app.use(cors());
 
-// 던담 기본 URL
-const BASE_URL = "https://dundam.xyz/character?";
+// 🔗 던담 기본 URL
+const BASE = "https://dundam.xyz/character?server=";
 
-// 전투력 가져오기
-app.get("/character/:server/:id/combat", async (req, res) => {
+// 전투력 + 버프력 크롤링
+app.get("/character/:server/:key", async (req, res) => {
   try {
-    const { server, id } = req.params;
-    const url = `${BASE_URL}server=${server}&key=${id}`;
+    const { server, key } = req.params;
+    const url = `${BASE}${server}&key=${key}`;
+
     const html = await fetch(url).then(r => r.text());
+    const $ = cheerio.load(html);
 
-    const match = html.match(/window\.__NUXT__=(.*?);<\/script>/);
-    if (!match) return res.status(200).json({ error: "NoData" });
+    // 전투력(딜)
+    const combat = $("div:contains('딜')").next().text().trim();
 
-    const data = JSON.parse(match[1]);
-    const power = data?.state?.data?.damage?.totalDamage;
+    // 버프력
+    const buff = $("div:contains('버프')").next().text().trim();
 
-    res.json({ server, id, combat: power ?? "NoData" });
-  } catch (err) {
-    res.status(500).json({ error: "ServerError", detail: err.toString() });
+    res.json({
+      server,
+      key,
+      combat: combat || "NoData",
+      buff: buff || "NoData"
+    });
+  } catch (e) {
+    res.json({ error: "ServerError", detail: e.toString() });
   }
 });
 
-// 버프력 가져오기
-app.get("/character/:server/:id/buff", async (req, res) => {
-  try {
-    const { server, id } = req.params;
-    const url = `${BASE_URL}server=${server}&key=${id}`;
-    const html = await fetch(url).then(r => r.text());
-
-    const match = html.match(/window\.__NUXT__=(.*?);<\/script>/);
-    if (!match) return res.status(200).json({ error: "NoData" });
-
-    const data = JSON.parse(match[1]);
-    const buff = data?.state?.data?.buffInfo?.totalBuffPower;
-
-    res.json({ server, id, buff: buff ?? "NoData" });
-  } catch (err) {
-    res.status(500).json({ error: "ServerError", detail: err.toString() });
-  }
-});
-
-// 기본 포트
 const port = process.env.PORT || 10000;
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(port, () => console.log("running", port));
