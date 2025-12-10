@@ -51,3 +51,4 @@ app.get("/character/:id/buff", async (req, res) => {
 // 기본 포트
 const port = process.env.PORT || 10000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
