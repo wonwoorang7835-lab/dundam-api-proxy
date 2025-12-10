@@ -1,13 +1,16 @@
 {
   "name": "dundam-api-proxy",
   "version": "1.0.0",
+  "description": "Dundam API proxy for Google Sheets",
+  "main": "index.js",
   "type": "module",
-  "dependencies": {
-    "express": "^4.18.2",
-    "node-fetch": "^2.6.7",
-    "cors": "^2.8.5"
-  },
   "scripts": {
     "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2",
+    "cheerio": "^1.0.0-rc.12"
   }
 }
